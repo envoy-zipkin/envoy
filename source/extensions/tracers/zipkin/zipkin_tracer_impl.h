@@ -38,7 +38,7 @@ public:
    *
    * @param span to be wrapped.
    */
-  ZipkinSpan(Zipkin::Span& span, Zipkin::Tracer& tracer);
+  ZipkinSpan(Zipkin::Span& span, Zipkin::Tracer& tracer, const std::string& version = "v1");
 
   /**
    * Calls Zipkin::Span::finishSpan() to perform all actions needed to finalize the span.
@@ -78,6 +78,7 @@ public:
 private:
   Zipkin::Span span_;
   Zipkin::Tracer& tracer_;
+  const std::string version_;
 };
 
 typedef std::unique_ptr<ZipkinSpan> ZipkinSpanPtr;
@@ -162,8 +163,9 @@ public:
    * when making HTTP POST requests carrying spans. This value comes from the
    * Zipkin-related tracing configuration.
    */
-  ReporterImpl(Driver& driver, Event::Dispatcher& dispatcher,
-               const std::string& collector_endpoint);
+  ReporterImpl(Driver& driver, Event::Dispatcher& dispatcher, const std::string& collector_endpoint,
+               const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion
+                   collector_endpoint_version);
 
   /**
    * Implementation of Zipkin::Reporter::reportSpan().
@@ -190,8 +192,10 @@ public:
    *
    * @return Pointer to the newly-created ZipkinReporter.
    */
-  static ReporterPtr NewInstance(Driver& driver, Event::Dispatcher& dispatcher,
-                                 const std::string& collector_endpoint);
+  static ReporterPtr
+  NewInstance(Driver& driver, Event::Dispatcher& dispatcher, const std::string& collector_endpoint,
+              const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion
+                  collector_endpoint_version);
 
 private:
   /**

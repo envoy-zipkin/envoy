@@ -1,6 +1,7 @@
 #include "extensions/tracers/zipkin/zipkin_core_types.h"
 
 #include "common/common/utility.h"
+#include "common/protobuf/protobuf.h"
 
 #include "extensions/tracers/zipkin/span_context.h"
 #include "extensions/tracers/zipkin/util.h"
@@ -9,6 +10,7 @@
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+#include "zipkin.pb.h"
 
 namespace Envoy {
 namespace Extensions {
@@ -26,7 +28,8 @@ Endpoint& Endpoint::operator=(const Endpoint& ep) {
   return *this;
 }
 
-const std::string Endpoint::toJson() {
+const std::string
+Endpoint::toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion) const {
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
   writer.StartObject();
@@ -79,7 +82,8 @@ void Annotation::changeEndpointServiceName(const std::string& service_name) {
   }
 }
 
-const std::string Annotation::toJson() {
+const std::string Annotation::toJson(
+    const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion version) const {
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
   writer.StartObject();
@@ -92,7 +96,7 @@ const std::string Annotation::toJson() {
   std::string json_string = s.GetString();
 
   if (endpoint_) {
-    Util::mergeJsons(json_string, static_cast<Endpoint>(endpoint_.value()).toJson(),
+    Util::mergeJsons(json_string, static_cast<Endpoint>(endpoint_.value()).toJson(version),
                      ZipkinJsonFieldNames::get().ANNOTATION_ENDPOINT);
   }
 
@@ -119,10 +123,19 @@ BinaryAnnotation& BinaryAnnotation::operator=(const BinaryAnnotation& ann) {
   return *this;
 }
 
-const std::string BinaryAnnotation::toJson() {
+const std::string BinaryAnnotation::toJson(
+    const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion version) const {
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
   writer.StartObject();
+
+  if (version == envoy::config::trace::v2::ZipkinConfig::HTTP_JSON) {
+    writer.Key(key_.c_str());
+    writer.String(value_.c_str());
+    writer.EndObject();
+    return s.GetString();
+  }
+
   writer.Key(ZipkinJsonFieldNames::get().BINARY_ANNOTATION_KEY.c_str());
   writer.String(key_.c_str());
   writer.Key(ZipkinJsonFieldNames::get().BINARY_ANNOTATION_VALUE.c_str());
@@ -132,7 +145,7 @@ const std::string BinaryAnnotation::toJson() {
   std::string json_string = s.GetString();
 
   if (endpoint_) {
-    Util::mergeJsons(json_string, static_cast<Endpoint>(endpoint_.value()).toJson(),
+    Util::mergeJsons(json_string, static_cast<Endpoint>(endpoint_.value()).toJson(version),
                      ZipkinJsonFieldNames::get().BINARY_ANNOTATION_ENDPOINT);
   }
 
@@ -171,7 +184,8 @@ void Span::setServiceName(const std::string& service_name) {
   }
 }
 
-const std::string Span::toJson() {
+const std::string
+Span::toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion version) const {
   rapidjson::StringBuffer s;
   rapidjson::Writer<rapidjson::StringBuffer> writer(s);
   writer.StartObject();
@@ -201,21 +215,36 @@ const std::string Span::toJson() {
 
   std::string json_string = s.GetString();
 
-  std::vector<std::string> annotation_json_vector;
-
-  for (auto it = annotations_.begin(); it != annotations_.end(); it++) {
-    annotation_json_vector.push_back(it->toJson());
+  if (version == envoy::config::trace::v2::ZipkinConfig::HTTP_JSON) {
+    for (const auto& annotation : annotations_) {
+      if (annotation.isSetEndpoint() &&
+          (annotation.value() == ZipkinCoreConstants::get().CLIENT_SEND ||
+           annotation.value() == ZipkinCoreConstants::get().SERVER_RECV)) {
+        Util::mergeJsons(json_string, annotation.endpoint().toJson(version),
+                         annotation.value() == ZipkinCoreConstants::get().CLIENT_SEND
+                             ? ZipkinJsonFieldNames::get().SPAN_LOCAL_ENDPOINT.c_str()
+                             : ZipkinJsonFieldNames::get().SPAN_REMOTE_ENDPOINT.c_str());
+      }
+    }
+  } else {
+    std::vector<std::string> annotation_json_vector;
+    annotation_json_vector.reserve(annotations_.size());
+    for (const auto& annotation : annotations_) {
+      annotation_json_vector.push_back(annotation.toJson(version));
+    }
+    Util::addArrayToJson(json_string, annotation_json_vector,
+                         ZipkinJsonFieldNames::get().SPAN_ANNOTATIONS);
   }
-  Util::addArrayToJson(json_string, annotation_json_vector,
-                       ZipkinJsonFieldNames::get().SPAN_ANNOTATIONS);
 
   std::vector<std::string> binary_annotation_json_vector;
-  for (auto it = binary_annotations_.begin(); it != binary_annotations_.end(); it++) {
-    binary_annotation_json_vector.push_back(it->toJson());
+  binary_annotation_json_vector.reserve(binary_annotations_.size());
+  for (const auto& binary_annotation : binary_annotations_) {
+    binary_annotation_json_vector.push_back(binary_annotation.toJson(version));
   }
   Util::addArrayToJson(json_string, binary_annotation_json_vector,
-                       ZipkinJsonFieldNames::get().SPAN_BINARY_ANNOTATIONS);
-
+                       version == envoy::config::trace::v2::ZipkinConfig::HTTP_JSON
+                           ? ZipkinJsonFieldNames::get().SPAN_TAGS
+                           : ZipkinJsonFieldNames::get().SPAN_BINARY_ANNOTATIONS);
   return json_string;
 }
 

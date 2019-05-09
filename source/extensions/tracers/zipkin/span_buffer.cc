@@ -20,11 +20,11 @@ std::string SpanBuffer::toStringifiedJsonArray() {
   std::string stringified_json_array = "[";
 
   if (pendingSpans()) {
-    stringified_json_array += span_buffer_[0].toJson();
+    stringified_json_array += span_buffer_[0].toJson(version_);
     const uint64_t size = span_buffer_.size();
     for (uint64_t i = 1; i < size; i++) {
       stringified_json_array += ",";
-      stringified_json_array += span_buffer_[i].toJson();
+      stringified_json_array += span_buffer_[i].toJson(version_);
     }
   }
   stringified_json_array += "]";
