@@ -94,8 +94,10 @@ public:
    *
    * @return a stringified JSON.
    */
-  const std::string
-  toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion version) const override;
+  const std::string toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion
+                               version) const override;
+
+  const zipkin::proto3::Endpoint toProto() const;
 
 private:
   std::string service_name_;
@@ -187,8 +189,8 @@ public:
    *
    * @return a stringified JSON.
    */
-  const std::string
-  toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion version) const override;
+  const std::string toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion
+                               version) const override;
 
 private:
   uint64_t timestamp_;
@@ -286,8 +288,8 @@ public:
    *
    * @return a stringified JSON.
    */
-  const std::string
-  toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion version) const override;
+  const std::string toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion
+                               version) const override;
 
 private:
   std::string key_;
@@ -521,8 +523,8 @@ public:
    *
    * @return a stringified JSON.
    */
-  const std::string
-  toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion version) const override;
+  const std::string toJson(const envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion
+                               version) const override;
 
   /**
    * Associates a Tracer object with the span. The tracer's reportSpan() method is invoked
@@ -563,6 +565,8 @@ public:
    * @param event The annotation's value.
    */
   void log(SystemTime timestamp, const std::string& event);
+
+  const zipkin::proto3::Span toProto() const;
 
 private:
   static const std::string EMPTY_HEX_STRING_;

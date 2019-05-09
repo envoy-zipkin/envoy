@@ -1,5 +1,7 @@
 #include "extensions/tracers/zipkin/span_buffer.h"
 
+#include "zipkin.pb.h"
+
 namespace Envoy {
 namespace Extensions {
 namespace Tracers {
@@ -14,6 +16,17 @@ bool SpanBuffer::addSpan(const Span& span) {
   span_buffer_.push_back(std::move(span));
 
   return true;
+}
+
+const zipkin::proto3::ListOfSpans SpanBuffer::toProto() {
+  zipkin::proto3::ListOfSpans spans;
+  if (pendingSpans()) {
+    for (const auto& span : span_buffer_) {
+      auto* mutable_span = spans.add_spans();
+      mutable_span->MergeFrom(span.toProto());
+    }
+  }
+  return spans;
 }
 
 std::string SpanBuffer::toStringifiedJsonArray() {

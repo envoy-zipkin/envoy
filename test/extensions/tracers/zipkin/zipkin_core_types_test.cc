@@ -19,17 +19,20 @@ TEST(ZipkinCoreTypesEndpointTest, defaultConstructor) {
   Endpoint ep;
 
   EXPECT_EQ("", ep.serviceName());
-  EXPECT_EQ(R"({"ipv4":"","port":0,"serviceName":""})", ep.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(R"({"ipv4":"","port":0,"serviceName":""})",
+            ep.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   Network::Address::InstanceConstSharedPtr addr =
       Network::Utility::parseInternetAddress("127.0.0.1");
   ep.setAddress(addr);
-  EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":0,"serviceName":""})", ep.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":0,"serviceName":""})",
+            ep.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   addr = Network::Utility::parseInternetAddressAndPort(
       "[2001:0db8:85a3:0000:0000:8a2e:0370:4444]:7334");
   ep.setAddress(addr);
-  EXPECT_EQ(R"({"ipv6":"2001:db8:85a3::8a2e:370:4444","port":7334,"serviceName":""})", ep.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(R"({"ipv6":"2001:db8:85a3::8a2e:370:4444","port":7334,"serviceName":""})",
+            ep.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   ep.setServiceName("my_service");
   EXPECT_EQ("my_service", ep.serviceName());
@@ -44,7 +47,8 @@ TEST(ZipkinCoreTypesEndpointTest, customConstructor) {
   Endpoint ep(std::string("my_service"), addr);
 
   EXPECT_EQ("my_service", ep.serviceName());
-  EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})", ep.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})",
+            ep.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   addr = Network::Utility::parseInternetAddressAndPort(
       "[2001:0db8:85a3:0000:0000:8a2e:0370:4444]:7334");
@@ -61,10 +65,12 @@ TEST(ZipkinCoreTypesEndpointTest, copyOperator) {
   Endpoint ep2(ep1);
 
   EXPECT_EQ("my_service", ep1.serviceName());
-  EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})", ep1.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})",
+            ep1.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   EXPECT_EQ(ep1.serviceName(), ep2.serviceName());
-  EXPECT_EQ(ep1.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1), ep2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(ep1.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1),
+            ep2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 }
 
 TEST(ZipkinCoreTypesEndpointTest, assignmentOperator) {
@@ -74,10 +80,12 @@ TEST(ZipkinCoreTypesEndpointTest, assignmentOperator) {
   Endpoint ep2 = ep1;
 
   EXPECT_EQ("my_service", ep1.serviceName());
-  EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})", ep1.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})",
+            ep1.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   EXPECT_EQ(ep1.serviceName(), ep2.serviceName());
-  EXPECT_EQ(ep1.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1), ep2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(ep1.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1),
+            ep2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 }
 
 TEST(ZipkinCoreTypesAnnotationTest, defaultConstructor) {
@@ -109,7 +117,8 @@ TEST(ZipkinCoreTypesAnnotationTest, defaultConstructor) {
   EXPECT_TRUE(ann.isSetEndpoint());
   EXPECT_EQ("my_service", ann.endpoint().serviceName());
   EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})",
-            (const_cast<Endpoint&>(ann.endpoint())).toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+            (const_cast<Endpoint&>(ann.endpoint()))
+                .toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   expected_json = R"({"timestamp":)" + std::to_string(timestamp) + R"(,"value":")" +
                   ZipkinCoreConstants::get().CLIENT_SEND +
@@ -124,7 +133,8 @@ TEST(ZipkinCoreTypesAnnotationTest, defaultConstructor) {
   EXPECT_TRUE(ann.isSetEndpoint());
   EXPECT_EQ("my_service_2", ann.endpoint().serviceName());
   EXPECT_EQ(R"({"ipv4":"192.168.1.1","port":5555,"serviceName":"my_service_2"})",
-            (const_cast<Endpoint&>(ann.endpoint())).toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+            (const_cast<Endpoint&>(ann.endpoint()))
+                .toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   expected_json = R"({"timestamp":)" + std::to_string(timestamp) + R"(,"value":")" +
                   ZipkinCoreConstants::get().CLIENT_SEND +
@@ -158,7 +168,8 @@ TEST(ZipkinCoreTypesAnnotationTest, customConstructor) {
 
   EXPECT_EQ("my_service", ann.endpoint().serviceName());
   EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})",
-            (const_cast<Endpoint&>(ann.endpoint())).toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+            (const_cast<Endpoint&>(ann.endpoint()))
+                .toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   std::string expected_json = R"({"timestamp":)" + std::to_string(timestamp) + R"(,"value":")" +
                               ZipkinCoreConstants::get().CLIENT_SEND +
@@ -181,7 +192,8 @@ TEST(ZipkinCoreTypesAnnotationTest, copyConstructor) {
   EXPECT_EQ(ann.value(), ann2.value());
   EXPECT_EQ(ann.timestamp(), ann2.timestamp());
   EXPECT_EQ(ann.isSetEndpoint(), ann2.isSetEndpoint());
-  EXPECT_EQ(ann.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1), ann2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(ann.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1),
+            ann2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
   EXPECT_EQ(ann.endpoint().serviceName(), ann2.endpoint().serviceName());
 }
 
@@ -199,7 +211,8 @@ TEST(ZipkinCoreTypesAnnotationTest, assignmentOperator) {
   EXPECT_EQ(ann.value(), ann2.value());
   EXPECT_EQ(ann.timestamp(), ann2.timestamp());
   EXPECT_EQ(ann.isSetEndpoint(), ann2.isSetEndpoint());
-  EXPECT_EQ(ann.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1), ann2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(ann.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1),
+            ann2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
   EXPECT_EQ(ann.endpoint().serviceName(), ann2.endpoint().serviceName());
 }
 
@@ -229,7 +242,8 @@ TEST(ZipkinCoreTypesBinaryAnnotationTest, defaultConstructor) {
   EXPECT_TRUE(ann.isSetEndpoint());
   EXPECT_EQ("my_service", ann.endpoint().serviceName());
   EXPECT_EQ(R"({"ipv4":"127.0.0.1","port":3306,"serviceName":"my_service"})",
-            (const_cast<Endpoint&>(ann.endpoint())).toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+            (const_cast<Endpoint&>(ann.endpoint()))
+                .toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
 
   expected_json = "{"
                   R"("key":"key","value":"value",)"
@@ -245,7 +259,8 @@ TEST(ZipkinCoreTypesBinaryAnnotationTest, defaultConstructor) {
   EXPECT_TRUE(ann.isSetEndpoint());
   EXPECT_EQ("my_service_2", ann.endpoint().serviceName());
   EXPECT_EQ(R"({"ipv4":"192.168.1.1","port":5555,"serviceName":"my_service_2"})",
-            (const_cast<Endpoint&>(ann.endpoint())).toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+            (const_cast<Endpoint&>(ann.endpoint()))
+                .toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
   expected_json = "{"
                   R"("key":"key","value":"value",)"
                   R"("endpoint":)"
@@ -272,7 +287,8 @@ TEST(ZipkinCoreTypesBinaryAnnotationTest, copyConstructor) {
   EXPECT_EQ(ann.value(), ann2.value());
   EXPECT_EQ(ann.key(), ann2.key());
   EXPECT_EQ(ann.isSetEndpoint(), ann2.isSetEndpoint());
-  EXPECT_EQ(ann.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1), ann2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(ann.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1),
+            ann2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
   EXPECT_EQ(ann.annotationType(), ann2.annotationType());
 }
 
@@ -283,7 +299,8 @@ TEST(ZipkinCoreTypesBinaryAnnotationTest, assignmentOperator) {
   EXPECT_EQ(ann.value(), ann2.value());
   EXPECT_EQ(ann.key(), ann2.key());
   EXPECT_EQ(ann.isSetEndpoint(), ann2.isSetEndpoint());
-  EXPECT_EQ(ann.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1), ann2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
+  EXPECT_EQ(ann.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1),
+            ann2.toJson(envoy::config::trace::v2::ZipkinConfig::HTTP_JSON_V1));
   EXPECT_EQ(ann.annotationType(), ann2.annotationType());
 }
 

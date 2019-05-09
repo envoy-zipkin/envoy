@@ -66,6 +66,10 @@ public:
    */
   std::string toStringifiedJsonArray();
 
+  const zipkin::proto3::ListOfSpans toProto();
+
+  envoy::config::trace::v2::ZipkinConfig::CollectorEndpointVersion version() { return version_; }
+
 private:
   // We use a pre-allocated vector to improve performance
   std::vector<Span> span_buffer_;

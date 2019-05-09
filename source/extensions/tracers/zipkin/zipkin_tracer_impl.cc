@@ -183,11 +183,17 @@ void ReporterImpl::flushSpans() {
     message->headers().insertPath().value(collector_endpoint_);
     message->headers().insertHost().value(driver_.cluster()->name());
     message->headers().insertContentType().value().setReference(
-        Http::Headers::get().ContentTypeValues.Json);
+        span_buffer_.version() == envoy::config::trace::v2::ZipkinConfig::HTTP_PROTO
+            ? Http::Headers::get().ContentTypeValues.Proto
+            : Http::Headers::get().ContentTypeValues.Json);
 
     Buffer::InstancePtr body(new Buffer::OwnedImpl());
     body->add(request_body);
-    message->body() = std::move(body);
+    if (span_buffer_.version() == envoy::config::trace::v2::ZipkinConfig::HTTP_PROTO) {
+      message->body() = Grpc::Common::serializeBody(span_buffer_.toProto());
+    } else {
+      message->body() = std::move(body);
+    }
 
     const uint64_t timeout =
         driver_.runtime().snapshot().getInteger("tracing.zipkin.request_timeout", 5000U);
