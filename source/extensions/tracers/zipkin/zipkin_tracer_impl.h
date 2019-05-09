@@ -38,7 +38,7 @@ public:
    *
    * @param span to be wrapped.
    */
-  ZipkinSpan(Zipkin::Span& span, Zipkin::Tracer& tracer, const std::string& version = "v1");
+  ZipkinSpan(Zipkin::Span& span, Zipkin::Tracer& tracer);
 
   /**
    * Calls Zipkin::Span::finishSpan() to perform all actions needed to finalize the span.
@@ -78,7 +78,6 @@ public:
 private:
   Zipkin::Span span_;
   Zipkin::Tracer& tracer_;
-  const std::string version_;
 };
 
 typedef std::unique_ptr<ZipkinSpan> ZipkinSpanPtr;
