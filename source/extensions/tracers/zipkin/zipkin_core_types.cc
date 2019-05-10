@@ -197,8 +197,8 @@ const zipkin::proto3::Span Span::toProto() const {
   zipkin::proto3::Span span;
   span.set_trace_id(traceIdAsHexString());
   span.set_name(name_);
-  std::cerr << Hex::uint64ToHex(id_) << "\n";
-  span.set_id("1234567890123456");
+  // TODO(dio): generate accordingly.
+  span.set_id(Hex::uint64ToHex(id_).substr(0, 8));
 
   if (parent_id_ && parent_id_.value()) {
     span.set_parent_id(Hex::uint64ToHex(parent_id_.value()));

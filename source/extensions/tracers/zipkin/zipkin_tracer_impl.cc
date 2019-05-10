@@ -185,10 +185,15 @@ void ReporterImpl::flushSpans() {
             ? Http::Headers::get().ContentTypeValues.Proto
             : Http::Headers::get().ContentTypeValues.Json);
 
+    std::string payload;
+    if (span_buffer_.version() == envoy::config::trace::v2::ZipkinConfig::HTTP_PROTO) {
+      span_buffer_.toProto().SerializeToString(&payload);
+    } else {
+      payload = span_buffer_.toStringifiedJsonArray();
+    }
+
     Buffer::InstancePtr body(new Buffer::OwnedImpl());
-    body->add(span_buffer_.version() == envoy::config::trace::v2::ZipkinConfig::HTTP_PROTO
-                  ? span_buffer_.toProto().SerializeAsString()
-                  : span_buffer_.toStringifiedJsonArray());
+    body->add(payload);
     message->body() = std::move(body);
 
     const uint64_t timeout =
