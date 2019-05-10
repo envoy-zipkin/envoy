@@ -176,7 +176,6 @@ void ReporterImpl::flushSpans() {
   if (span_buffer_.pendingSpans()) {
     driver_.tracerStats().spans_sent_.add(span_buffer_.pendingSpans());
 
-    const std::string request_body = span_buffer_.toStringifiedJsonArray();
     Http::MessagePtr message(new Http::RequestMessageImpl());
     message->headers().insertMethod().value().setReference(Http::Headers::get().MethodValues.Post);
     message->headers().insertPath().value(collector_endpoint_);
@@ -187,12 +186,10 @@ void ReporterImpl::flushSpans() {
             : Http::Headers::get().ContentTypeValues.Json);
 
     Buffer::InstancePtr body(new Buffer::OwnedImpl());
-    body->add(request_body);
-    if (span_buffer_.version() == envoy::config::trace::v2::ZipkinConfig::HTTP_PROTO) {
-      message->body() = Grpc::Common::serializeBody(span_buffer_.toProto());
-    } else {
-      message->body() = std::move(body);
-    }
+    body->add(span_buffer_.version() == envoy::config::trace::v2::ZipkinConfig::HTTP_PROTO
+                  ? span_buffer_.toProto().SerializeAsString()
+                  : span_buffer_.toStringifiedJsonArray());
+    message->body() = std::move(body);
 
     const uint64_t timeout =
         driver_.runtime().snapshot().getInteger("tracing.zipkin.request_timeout", 5000U);

@@ -31,6 +31,7 @@ Endpoint& Endpoint::operator=(const Endpoint& ep) {
 const zipkin::proto3::Endpoint Endpoint::toProto() const {
   zipkin::proto3::Endpoint endpoint;
   if (!address_) {
+    // TODO(dio): empty string.
     endpoint.set_ipv4("");
     endpoint.set_port(0);
   } else {
@@ -196,7 +197,8 @@ const zipkin::proto3::Span Span::toProto() const {
   zipkin::proto3::Span span;
   span.set_trace_id(traceIdAsHexString());
   span.set_name(name_);
-  span.set_id(Hex::uint64ToHex(id_));
+  std::cerr << Hex::uint64ToHex(id_) << "\n";
+  span.set_id("1234567890123456");
 
   if (parent_id_ && parent_id_.value()) {
     span.set_parent_id(Hex::uint64ToHex(parent_id_.value()));
